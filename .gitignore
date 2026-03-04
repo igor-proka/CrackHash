@@ -87,3 +87,17 @@ application-local.properties
 *.pid
 *.lock
 *.hprof
+
+### Node.js ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+### Vite ###
+client/dist/
+.vite/
+vite-temp/
+*.local

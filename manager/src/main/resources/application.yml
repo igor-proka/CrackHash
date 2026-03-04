@@ -1,0 +1,9 @@
+server:
+  port: 8080
+
+worker:
+  urls: http://worker-1:8081,http://worker-2:8081,http://worker-3:8081
+
+task:
+  timeout:
+    ms: 300000
