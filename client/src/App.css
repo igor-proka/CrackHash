@@ -1,0 +1,358 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+/* --- Theme Variables --- */
+:root[data-theme="dark"] {
+  --bg: #0f0f13;
+  --surface: #1a1a24;
+  --surface-2: #12121a;
+  --border: #2a2a3a;
+  --text: #e0e0e0;
+  --text-muted: #888;
+  --text-dim: #555;
+  --accent: #00d2ff;
+  --accent-2: #7a5cff;
+}
+
+:root[data-theme="light"] {
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --border: #dde0e6;
+  --text: #1a1a2e;
+  --text-muted: #5a5a7a;
+  --text-dim: #999;
+  --accent: #0077cc;
+  --accent-2: #5c3dcc;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* --- Header --- */
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header h1 {
+  font-size: 2.2rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.theme-toggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* --- Panels --- */
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.panels .panel:first-child {
+  grid-column: 1 / -1;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.panel h2 {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+/* --- Forms --- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+input {
+  padding: 0.65rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px rgba(122, 92, 255, 0.15);
+}
+
+/* --- Buttons --- */
+.btn {
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+  font-family: inherit;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #7a5cff, #5c3dcc);
+  color: #fff;
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: #1a1a24;
+}
+
+/* --- Copy Button --- */
+.copy-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.35rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.copy-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.copy-btn.copied {
+  border-color: #2ecc71;
+}
+
+/* --- Results --- */
+.result-box {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.copyable-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.result-data {
+  margin-top: 0.5rem;
+}
+
+.hash-output {
+  display: block;
+  margin-top: 0.4rem;
+  padding: 0.5rem;
+  background: var(--bg);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  word-break: break-all;
+  user-select: all;
+}
+
+/* --- Badges --- */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-in_progress,
+.status-in_progress .badge {
+  background: #f39c12;
+  color: #fff;
+}
+
+.badge-ready,
+.status-ready .badge {
+  background: #2ecc71;
+  color: #fff;
+}
+
+.badge-error,
+.status-error .badge {
+  background: #e74c3c;
+  color: #fff;
+}
+
+/* --- Task History --- */
+.tasks-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.tasks-section h2 {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.empty-text {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface-2);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--border);
+  transition: background 0.3s;
+}
+
+.task-card.status-in_progress {
+  border-left-color: #f39c12;
+}
+
+.task-card.status-ready {
+  border-left-color: #2ecc71;
+}
+
+.task-card.status-error {
+  border-left-color: #e74c3c;
+}
+
+.task-id-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-id {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-result {
+  font-size: 0.85rem;
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+
+  .panels .panel:first-child {
+    grid-column: auto;
+  }
+}

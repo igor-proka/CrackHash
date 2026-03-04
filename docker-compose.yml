@@ -1,0 +1,48 @@
+services:
+  manager:
+    build:
+      context: ./manager
+    ports:
+      - "8080:8080"
+    environment:
+      - WORKER_URLS=http://worker-1:8081,http://worker-2:8081,http://worker-3:8081
+    networks:
+      - crackhash-net
+
+  worker-1:
+    build:
+      context: ./worker
+    environment:
+      - MANAGER_URL=http://manager:8080
+    networks:
+      - crackhash-net
+
+  worker-2:
+    build:
+      context: ./worker
+    environment:
+      - MANAGER_URL=http://manager:8080
+    networks:
+      - crackhash-net
+
+  worker-3:
+    build:
+      context: ./worker
+    environment:
+      - MANAGER_URL=http://manager:8080
+    networks:
+      - crackhash-net
+
+  client:
+    build:
+      context: ./client
+    ports:
+      - "80:80"
+    networks:
+      - crackhash-net
+    depends_on:
+      - manager
+
+networks:
+  crackhash-net:
+    driver: bridge
