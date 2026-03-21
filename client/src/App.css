@@ -2,25 +2,31 @@
 
 /* --- Theme Variables --- */
 :root[data-theme="dark"] {
-  --bg: #0f0f13;
-  --surface: #1a1a24;
-  --surface-2: #12121a;
-  --border: #2a2a3a;
+  --bg-rgb: 10, 10, 14;
+  --bg: rgb(10, 10, 14);
+  --surface-rgb: 26, 26, 36;
+  --surface: rgb(26, 26, 36);
+  --surface-2-rgb: 18, 18, 26;
+  --surface-2: rgb(18, 18, 26);
+  --border: rgba(255, 255, 255, 0.1);
   --text: #e0e0e0;
-  --text-muted: #888;
-  --text-dim: #555;
+  --text-muted: #aaa;
+  --text-dim: #777;
   --accent: #00d2ff;
   --accent-2: #7a5cff;
 }
 
 :root[data-theme="light"] {
-  --bg: #f0f2f5;
-  --surface: #ffffff;
-  --surface-2: #f7f8fa;
-  --border: #dde0e6;
+  --bg-rgb: 240, 242, 245;
+  --bg: rgb(240, 242, 245);
+  --surface-rgb: 255, 255, 255;
+  --surface: rgb(255, 255, 255);
+  --surface-2-rgb: 247, 248, 250;
+  --surface-2: rgb(247, 248, 250);
+  --border: rgba(0, 0, 0, 0.1);
   --text: #1a1a2e;
-  --text-muted: #5a5a7a;
-  --text-dim: #999;
+  --text-muted: #4a4a60;
+  --text-dim: #888;
   --accent: #0077cc;
   --accent-2: #5c3dcc;
 }
@@ -33,13 +39,116 @@
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  transition: background 0.3s, color 0.3s;
+  margin: 0;
+  overflow-x: hidden;
+  background-color: var(--bg);
+  transition: background-color 0.5s ease, color 0.3s;
+}
+
+/* --- Animated Background Shapes & Space --- */
+.bg-shapes {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at top left, rgba(var(--surface-rgb), 0.3) 0%, transparent 60%),
+                    radial-gradient(circle at bottom right, rgba(var(--surface-2-rgb), 0.4) 0%, transparent 50%);
+  transition: background-color 0.5s ease;
+}
+
+/* Stars for Dark Mode */
+.bg-stars {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  background-image: 
+    radial-gradient(2px 2px at 40px 60px, rgba(255,255,255,0.7), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 100px 150px, rgba(255,255,255,0.5), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 200px 30px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 300px 250px, rgba(255,255,255,0.6), rgba(0,0,0,0)),
+    radial-gradient(2.5px 2.5px at 350px 80px, rgba(122,92,255,0.8), rgba(0,0,0,0)), /* Purple star */
+    radial-gradient(1.5px 1.5px at 50px 300px, rgba(0,210,255,0.8), rgba(0,0,0,0)), /* Cyan star */
+    radial-gradient(1px 1px at 250px 350px, rgba(255,255,255,0.4), rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 150px 220px, rgba(255,255,255,0.9), rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 400px 400px;
+  animation: starsMove 150s linear infinite;
+}
+
+html[data-theme="dark"] .bg-stars {
+  opacity: 1;
+}
+
+@keyframes starsMove {
+  from { background-position: 0 0; }
+  to { background-position: -400px 400px; }
+}
+
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  animation: float 20s infinite ease-in-out alternate;
+}
+
+html[data-theme="dark"] .shape {
+  opacity: 0.2; /* Much dimmer in dark mode so space is visible and it doesn't wash things out */
+  filter: blur(120px);
+}
+
+.shape-1 {
+  width: 50vw;
+  height: 50vw;
+  background: var(--accent);
+  top: -10vw;
+  left: -10vw;
+  animation-duration: 25s;
+}
+
+.shape-2 {
+  width: 40vw;
+  height: 40vw;
+  background: var(--accent-2);
+  bottom: -5vw;
+  right: -5vw;
+  animation-duration: 22s;
+  animation-delay: -5s;
+}
+
+.shape-3 {
+  width: 30vw;
+  height: 30vw;
+  background: rgb(255, 0, 85); /* A pop of contrasting color */
+  top: 40%;
+  left: 30%;
+  animation-duration: 28s;
+  animation-delay: -10s;
+  opacity: 0.3;
+}
+
+html[data-theme="light"] .shape-3 {
+  background: rgb(0, 200, 255);
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(5vw, 10vh) scale(1.1); }
+  66% { transform: translate(-5vw, 5vh) scale(0.9); }
+  100% { transform: translate(2vw, -5vh) scale(1.05); }
 }
 
 .app {
+  position: relative;
+  z-index: 1;
   max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
@@ -61,6 +170,7 @@ body {
 .header h1 {
   font-size: 2.2rem;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -102,11 +212,14 @@ body {
 }
 
 .panel {
-  background: var(--surface);
+  background: rgba(var(--surface-rgb), 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
   transition: background 0.3s, border-color 0.3s;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .panel h2 {
@@ -137,7 +250,7 @@ input {
   padding: 0.65rem 0.75rem;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: rgba(var(--surface-2-rgb), 0.7);
   color: var(--text);
   font-size: 0.95rem;
   font-family: inherit;
@@ -215,7 +328,9 @@ input:focus {
   margin-top: 0.75rem;
   padding: 0.75rem;
   border-radius: 8px;
-  background: var(--surface-2);
+  background: rgba(var(--surface-2-rgb), 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
   font-size: 0.9rem;
 }
@@ -235,7 +350,7 @@ input:focus {
   display: block;
   margin-top: 0.4rem;
   padding: 0.5rem;
-  background: var(--bg);
+  background: rgba(var(--bg-rgb), 0.5);
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
@@ -275,11 +390,14 @@ input:focus {
 
 /* --- Task History --- */
 .tasks-section {
-  background: var(--surface);
+  background: rgba(var(--surface-rgb), 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
   transition: background 0.3s, border-color 0.3s;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .tasks-section h2 {
@@ -305,7 +423,9 @@ input:focus {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: var(--surface-2);
+  background: rgba(var(--surface-2-rgb), 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   padding: 0.75rem 1rem;
   border-radius: 8px;
   border-left: 3px solid var(--border);

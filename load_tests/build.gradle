@@ -1,0 +1,26 @@
+apply plugin: "java"
+apply plugin: "application"
+
+group = "ru.nsu.prokofiev.crackhash"
+version = "1.0.0"
+sourceCompatibility = "11"
+
+repositories {
+    mavenCentral()
+}
+
+// Используем встроенный Java 11 HttpClient — никаких внешних зависимостей не нужно
+dependencies {
+}
+
+application {
+    mainClass = "ru.nsu.prokofiev.crackhash.loadtest.LoadTest"
+}
+
+// Задача для удобного запуска из консоли: gradle run --args="1000"
+run {
+    // Передаём аргументы командной строки в приложение
+    if (project.hasProperty("appArgs")) {
+        args project.appArgs.split(",")
+    }
+}

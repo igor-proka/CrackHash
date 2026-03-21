@@ -31,7 +31,7 @@ public class WorkerApi {
     private final RestTemplate restTemplate;
     private final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-    @Value("${manager.url:http://manager:8080}")
+    @Value("${manager.url:http://manager:8082}")
     private String managerUrl;
 
     @PostMapping("/task")
