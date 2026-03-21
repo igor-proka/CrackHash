@@ -2,4 +2,4 @@ server:
   port: 8081
 
 manager:
-  url: http://manager:8080
+  url: http://manager:8082

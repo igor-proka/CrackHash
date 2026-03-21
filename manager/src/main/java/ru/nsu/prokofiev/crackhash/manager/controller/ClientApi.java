@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.nsu.prokofiev.crackhash.manager.model.CrackRequest;
 import ru.nsu.prokofiev.crackhash.manager.model.CrackResponse;
 import ru.nsu.prokofiev.crackhash.manager.model.StatusResponse;
-import ru.nsu.prokofiev.crackhash.manager.model.WorkerResponse;
 import ru.nsu.prokofiev.crackhash.manager.service.ManagerService;
 
 /**

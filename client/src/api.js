@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/hash'; // Points to Manager service exposed on host
+const API_URL = 'http://localhost:8082/api/hash'; // Points to Manager service exposed on host
 
 export const crackHashRequest = async (hash, maxLength) => {
     try {

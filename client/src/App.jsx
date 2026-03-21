@@ -106,6 +106,13 @@ function App() {
 
     return (
         <div className="app">
+            <div className="bg-shapes">
+                <div className="bg-stars"></div>
+                <div className="shape shape-1"></div>
+                <div className="shape shape-2"></div>
+                <div className="shape shape-3"></div>
+            </div>
+            
             <header className="header">
                 <div className="header-top">
                     <h1>🔓 CrackHash</h1>

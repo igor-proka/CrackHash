@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8082
 
 worker:
   urls: http://worker-1:8081,http://worker-2:8081,http://worker-3:8081

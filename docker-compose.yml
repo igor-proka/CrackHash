@@ -3,9 +3,14 @@ services:
     build:
       context: ./manager
     ports:
-      - "8080:8080"
+      - "8082:8082"
     environment:
       - WORKER_URLS=http://worker-1:8081,http://worker-2:8081,http://worker-3:8081
+      - JAVA_TOOL_OPTIONS=-Xmx800m
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     networks:
       - crackhash-net
 
@@ -13,7 +18,12 @@ services:
     build:
       context: ./worker
     environment:
-      - MANAGER_URL=http://manager:8080
+      - MANAGER_URL=http://manager:8082
+      - JAVA_TOOL_OPTIONS=-Xmx800m
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     networks:
       - crackhash-net
 
@@ -21,7 +31,12 @@ services:
     build:
       context: ./worker
     environment:
-      - MANAGER_URL=http://manager:8080
+      - MANAGER_URL=http://manager:8082
+      - JAVA_TOOL_OPTIONS=-Xmx800m
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     networks:
       - crackhash-net
 
@@ -29,7 +44,12 @@ services:
     build:
       context: ./worker
     environment:
-      - MANAGER_URL=http://manager:8080
+      - MANAGER_URL=http://manager:8082
+      - JAVA_TOOL_OPTIONS=-Xmx800m
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     networks:
       - crackhash-net
 
