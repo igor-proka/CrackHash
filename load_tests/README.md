@@ -1,38 +1,61 @@
-# Нагрузочное тестирование системы CrackHash
+# Нагрузочное тестирование CrackHash
 
-В этой директории находится Java-приложение для проведения нагрузочного тестирования распределенной системы взлома хэшей (CrackHash).
+Основной сценарий теперь лежит в `load_tests/k6/crackhash.js` и запускается через Docker Compose. Метрики k6 пишутся в Prometheus remote write и видны в Grafana на dashboard `CrackHash Operations`.
 
-## Цели тестирования
-
-Главная цель — **найти точку деградации системы** при большом количестве одновременных запросов. Простое истечение таймаута воркера нас не интересует — мы ищем **структурные отказы** архитектуры.
-
-## Что проверяем (Сценарий)
-
-Класс `LoadTest.java` создает заданное количество виртуальных клиентов (по умолчанию 1000), которые **одновременно** (через `CompletableFuture`) отправляют POST-запросы на эндпоинт `/api/hash/crack` Менеджера.
-
-В качестве нагрузки мы просим систему найти слово по MD5 хэшу от "test" (длина ≤ 4).
-
-## Технологии
-
-- **Java 11+** — встроенный `java.net.http.HttpClient`, `CompletableFuture`.
-- **Никаких внешних зависимостей** — только стандартная библиотека JDK.
-
-## Как запустить
-
-Убедитесь, что система (`docker-compose up -d`) запущена и Менеджер доступен.
+## Быстрый запуск
 
 ```bash
-cd load_tests
-
-# Запуск теста на 1000 клиентов (по умолчанию)
-run_test.bat
-
-# Запуск теста на произвольное количество клиентов
-run_test.bat 500
-run_test.bat 10000
-run_test.bat 100000
+docker compose up -d --build
+docker compose --profile loadtest up k6
 ```
 
-**Точка начала деградации:** ~300 одновременных запросов (лимит пула потоков Tomcat).
+По умолчанию k6 использует профиль из `.env`:
 
-Подробный анализ результатов — в файле [ANALYSIS.md](ANALYSIS.md).
+```text
+K6_VUS=1000
+K6_DURATION=30s
+K6_POLL_STATUS=false
+K6_MAX_LENGTH=2
+K6_HASH=25ed1bcb423b0b7200f485fc5ff71c8e
+K6_SLEEP_SECONDS=1
+```
+
+`K6_HASH` выше это MD5 от `zz`, поэтому задача реально решаемая при `maxLength=2`, но достаточно лёгкая: нагрузка в основном идёт на manager, MongoDB outbox и RabbitMQ.
+
+## Что именно нагружается
+
+При `K6_POLL_STATUS=false` каждый виртуальный пользователь делает `POST /api/hash/crack`, получает `requestId`, ждёт `K6_SLEEP_SECONDS` и повторяет. Это manager-load тест: он показывает, как быстро manager принимает задачи, сохраняет их в MongoDB и публикует части в RabbitMQ.
+
+При `K6_POLL_STATUS=true` каждый пользователь дополнительно polling-ит `GET /api/hash/status`. Это уже end-to-end тест клиента: больше HTTP-запросов, выше нагрузка на чтение из MongoDB, но меньше чистого давления на POST.
+
+## Как менять нагрузку
+
+PowerShell:
+
+```powershell
+$env:K6_VUS="300"; $env:K6_DURATION="1m"; docker compose --profile loadtest up k6
+```
+
+Bash:
+
+```bash
+K6_VUS=300 K6_DURATION=1m docker compose --profile loadtest up k6
+```
+
+1000 VU может быстро создать десятки тысяч задач. Если RabbitMQ queue depth растёт и долго не падает, это не баг теста: manager принимает быстрее, чем worker-ы успевают обработать backlog.
+
+## Как читать результаты
+
+В Grafana открыть `CrackHash Operations`:
+
+- `Manager POST RPS` и `Request Rate`: сколько запросов реально принимает manager.
+- `Manager Latency`: p95/p99 задержки POST. Если растёт, manager/MongoDB становятся узким местом.
+- `RabbitMQ Queues`: `ready` это backlog, `unacked` это задачи, уже отданные worker-ам, но ещё не подтверждённые.
+- `RabbitMQ Throughput`: скорость публикации и доставки сообщений.
+- `Workers Alive`: сколько worker-инстансов сейчас scrape-ится Prometheus.
+- `Mongo Replica Set Roles`: кто PRIMARY и кто SECONDARY.
+- `Mongo Primary Count`: должно быть `1`.
+- `Mongo Health`: по каждой MongoDB ноде должно быть `1`.
+- `k6 Virtual Users`: сколько виртуальных пользователей было активно во время теста.
+
+Если `RabbitMQ Queues` пустой, сначала проверить, что Prometheus target `rabbitmq-queues` в состоянии `UP`: `http://localhost:9090/targets`.

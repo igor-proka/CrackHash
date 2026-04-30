@@ -1,0 +1,203 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [
+        { "expr": "count(up{job=\"workers\"} == 1)", "legendFormat": "workers" }
+      ],
+      "title": "Workers Alive",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [
+        { "expr": "sum(crackhash_mongodb_replset_member_state{state=\"PRIMARY\"})", "legendFormat": "primary count" }
+      ],
+      "title": "Mongo Primary Count",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [
+        { "expr": "sum(rabbitmq_queue_consumers{queue=~\"crackhash\\\\..*\"} or rabbitmq_detailed_queue_consumers{queue=~\"crackhash\\\\..*\"})", "legendFormat": "queue consumers" }
+      ],
+      "title": "Rabbit Consumers",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=\"manager\",uri=\"/api/hash/crack\"}[1m]))", "legendFormat": "POST RPS" }
+      ],
+      "title": "Manager POST RPS",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 5,
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=\"manager\",uri=\"/api/hash/crack\"}[1m]))", "legendFormat": "POST /api/hash/crack" },
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=\"manager\",uri=\"/api/hash/status\"}[1m]))", "legendFormat": "GET /api/hash/status" },
+        { "expr": "sum(rate(k6_http_reqs_total[1m]))", "legendFormat": "k6 HTTP reqs" }
+      ],
+      "title": "Request Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 6,
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"manager\",uri=\"/api/hash/crack\"}[1m])) by (le))", "legendFormat": "manager p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=\"manager\",uri=\"/api/hash/crack\"}[1m])) by (le))", "legendFormat": "manager p99" }
+      ],
+      "title": "Manager Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 7,
+      "targets": [
+        { "expr": "rabbitmq_queue_messages_ready{queue=~\"crackhash\\\\..*\"} or rabbitmq_detailed_queue_messages_ready{queue=~\"crackhash\\\\..*\"}", "legendFormat": "{{queue}} ready" },
+        { "expr": "rabbitmq_queue_messages_unacked{queue=~\"crackhash\\\\..*\"} or rabbitmq_queue_messages_unacknowledged{queue=~\"crackhash\\\\..*\"} or rabbitmq_detailed_queue_messages_unacked{queue=~\"crackhash\\\\..*\"} or rabbitmq_detailed_queue_messages_unacknowledged{queue=~\"crackhash\\\\..*\"}", "legendFormat": "{{queue}} unacked" }
+      ],
+      "title": "RabbitMQ Queues",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 8,
+      "targets": [
+        { "expr": "sum(rate(rabbitmq_queue_messages_published_total{queue=~\"crackhash\\\\..*\"}[1m]) or rate(rabbitmq_detailed_queue_messages_published_total{queue=~\"crackhash\\\\..*\"}[1m])) by (queue)", "legendFormat": "{{queue}} published" },
+        { "expr": "sum(rate(rabbitmq_queue_messages_delivered_total{queue=~\"crackhash\\\\..*\"}[1m]) or rate(rabbitmq_detailed_queue_messages_delivered_total{queue=~\"crackhash\\\\..*\"}[1m])) by (queue)", "legendFormat": "{{queue}} delivered" }
+      ],
+      "title": "RabbitMQ Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": { "color": "red", "text": "DOWN" },
+                "1": { "color": "blue", "text": "SECONDARY" },
+                "2": { "color": "green", "text": "PRIMARY" }
+              },
+              "type": "value"
+            }
+          ],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "id": 9,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "mergeValues": true,
+        "showValue": "always",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        { "expr": "sum by (member) ((crackhash_mongodb_replset_member_state{state=\"PRIMARY\"} * 2) or (crackhash_mongodb_replset_member_state{state=\"SECONDARY\"} * 1) or (crackhash_mongodb_replset_member_health * 0))", "legendFormat": "{{member}}" }
+      ],
+      "title": "Mongo Replica Set Roles",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "id": 10,
+      "targets": [
+        { "expr": "crackhash_mongodb_replset_member_health", "legendFormat": "{{member}} health" },
+        { "expr": "up{job=\"manager\"}", "legendFormat": "manager {{instance}}" },
+        { "expr": "up{job=\"workers\"}", "legendFormat": "{{instance}}" },
+        { "expr": "up{job=\"rabbitmq\"}", "legendFormat": "rabbitmq {{instance}}" },
+        { "expr": "up{job=\"rabbitmq-queues\"}", "legendFormat": "rabbitmq queues {{instance}}" }
+      ],
+      "title": "Service Health",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "id": 11,
+      "targets": [
+        { "expr": "sum(jvm_memory_used_bytes{area=\"heap\"}) by (job)", "legendFormat": "{{job}} heap" }
+      ],
+      "title": "JVM Heap",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "id": 12,
+      "targets": [
+        { "expr": "increase(crackhash_requests_accepted_total[5m])", "legendFormat": "accepted / 5m" },
+        { "expr": "increase(crackhash_requests_completed_total[5m])", "legendFormat": "completed / 5m" },
+        { "expr": "increase(crackhash_tasks_publish_failures_total[5m])", "legendFormat": "publish failures / 5m" }
+      ],
+      "title": "CrackHash Counters",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "id": 13,
+      "targets": [
+        { "expr": "k6_vus", "legendFormat": "active VUs" },
+        { "expr": "k6_vus_max", "legendFormat": "max VUs" }
+      ],
+      "title": "k6 Virtual Users",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["crackhash"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "CrackHash Operations",
+  "uid": "crackhash-overview",
+  "version": 2,
+  "weekStart": ""
+}

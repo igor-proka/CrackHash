@@ -6,9 +6,9 @@ COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
 
-# Make gradlew executable
+# Даем wrapper права на запуск внутри Linux-контейнера.
 RUN chmod +x ./gradlew
-# Download dependencies
+# Заранее скачиваем зависимости, чтобы Docker лучше кешировал сборку.
 RUN ./gradlew dependencies --no-daemon
 
 COPY src src

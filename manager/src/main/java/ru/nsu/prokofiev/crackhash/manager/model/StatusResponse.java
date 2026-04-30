@@ -4,6 +4,10 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Ответ manager на GET /api/hash/status.
+ * data заполняется только для READY, чтобы клиент видел результат после завершения всех частей.
+ */
 @Data
 public class StatusResponse {
     private String status;

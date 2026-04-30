@@ -1,5 +1,41 @@
 server:
   port: 8081
 
-manager:
-  url: http://manager:8082
+spring:
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+    # Correlated confirms позволяют связывать broker ack/nack с конкретным событием воркера.
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        # Воркер подтверждает задачу только после успешной отправки результата в results-очередь.
+        acknowledge-mode: manual
+        default-requeue-rejected: false
+        # Один unacked task на воркера упрощает восстановление при падении контейнера.
+        prefetch: ${RABBITMQ_PREFETCH:1}
+
+crackhash:
+  rabbitmq:
+    # Воркер читает задачи из общей очереди.
+    tasks-exchange: crackhash.tasks.exchange
+    tasks-queue: crackhash.tasks.queue
+    tasks-routing-key: crackhash.task
+    # Результаты отправляются в отдельную очередь, которую слушает manager.
+    results-exchange: crackhash.results.exchange
+    results-queue: crackhash.results.queue
+    results-routing-key: crackhash.result
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Метрики воркера собираются Prometheus через Docker DNS discovery.
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
