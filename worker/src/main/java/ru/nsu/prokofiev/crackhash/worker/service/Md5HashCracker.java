@@ -50,9 +50,14 @@ public class Md5HashCracker implements HashCracker {
                 long chunkSize = totalCombinations / partCount;
                 long remainder = totalCombinations % partCount;
 
-                // Вычисляем границы диапазона для текущего воркера
-                long startIdx = (partNumber - 1) * chunkSize;
-                long endIdx = startIdx + chunkSize + (partNumber == partCount ? remainder : 0);
+                // Остаток распределяем по первым частям, чтобы диапазоны были максимально равными.
+                long startIdx = (partNumber - 1) * chunkSize + Math.min(partNumber - 1L, remainder);
+                long currentChunkSize = chunkSize + (partNumber <= remainder ? 1 : 0);
+                long endIdx = startIdx + currentChunkSize;
+
+                if (currentChunkSize == 0) {
+                    continue;
+                }
 
                 // Используем .skip() и .limit(), чтобы обрабатывать только свой "кусок"
                 Iterable<List<Character>> iterable = permutationStream.skip(startIdx)

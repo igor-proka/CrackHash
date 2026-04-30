@@ -19,14 +19,17 @@ repositories {
     mavenCentral()
 }
 
+// Worker: RabbitMQ listener, actuator/Prometheus и библиотека генерации комбинаций для перебора слов.
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "org.springframework.boot:spring-boot-starter-amqp"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "io.micrometer:micrometer-registry-prometheus"
     implementation("com.github.dpaukov:combinatoricslib3:3.3.3")
-    implementation "org.apache.httpcomponents:httpclient:4.5.14"
 
-    compileOnly "org.projectlombok:lombok:1.18.28"
-    annotationProcessor "org.projectlombok:lombok:1.18.28"
+    compileOnly "org.projectlombok:lombok:1.18.32"
+    annotationProcessor "org.projectlombok:lombok:1.18.32"
     
     testImplementation "org.springframework.boot:spring-boot-starter-test"
 }

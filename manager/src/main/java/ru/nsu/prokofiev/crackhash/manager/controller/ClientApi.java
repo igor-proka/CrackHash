@@ -8,6 +8,8 @@ import ru.nsu.prokofiev.crackhash.manager.model.CrackResponse;
 import ru.nsu.prokofiev.crackhash.manager.model.StatusResponse;
 import ru.nsu.prokofiev.crackhash.manager.service.ManagerService;
 
+import javax.validation.Valid;
+
 /**
  * REST контроллер для взаимодействия с веб-клиентом.
  */
@@ -23,7 +25,7 @@ public class ClientApi {
      * Принимает запрос на взлом хэша от клиента.
      */
     @PostMapping("/crack")
-    public ResponseEntity<CrackResponse> crackHash(@RequestBody CrackRequest request) {
+    public ResponseEntity<CrackResponse> crackHash(@Valid @RequestBody CrackRequest request) {
         String requestId = managerService.createCrackTask(request);
         return ResponseEntity.ok(new CrackResponse(requestId));
     }

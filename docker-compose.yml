@@ -1,68 +1,252 @@
+name: crackhash
+
 services:
+  # Manager принимает внешние REST-запросы, хранит состояние в MongoDB и общается с воркерами через RabbitMQ.
   manager:
     build:
       context: ./manager
     ports:
-      - "8082:8082"
+      - "${MANAGER_PORT:-8082}:8082"
     environment:
-      - WORKER_URLS=http://worker-1:8081,http://worker-2:8081,http://worker-3:8081
-      - JAVA_TOOL_OPTIONS=-Xmx800m
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo1:27017,mongo2:27017,mongo3:27017/crackhash?replicaSet=${MONGO_REPLICA_SET:-rs0}&w=majority&readConcernLevel=majority&retryWrites=true"
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      TASK_PARTITION_COUNT: ${TASK_PARTITION_COUNT:-3}
+      TASK_TIMEOUT_MS: ${TASK_TIMEOUT_MS:-300000}
+      JAVA_TOOL_OPTIONS: -Xmx512m
+    mem_limit: 768m
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 768m
     networks:
       - crackhash-net
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
 
-  worker-1:
+  # HTTP API только для чтения для вкладки «Мониторинг». 
+  # Он считывает данные из MongoDB напрямую, поэтому
+  # проверка задач продолжает работать, даже когда менеджер остановлен или перезапущен.
+  monitoring-api:
+    build:
+      context: ./monitoring-api
+    ports:
+      - "${MONITORING_API_PORT:-8083}:8083"
+    environment:
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo1:27017,mongo2:27017,mongo3:27017/crackhash?replicaSet=${MONGO_REPLICA_SET:-rs0}&readConcernLevel=majority&readPreference=secondaryPreferred&retryWrites=true"
+      JAVA_TOOL_OPTIONS: -Xmx256m
+    mem_limit: 384m
+    deploy:
+      resources:
+        limits:
+          memory: 384m
+    networks:
+      - crackhash-net
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+
+  # Worker можно масштабировать: все экземпляры слушают одну очередь задач и конкурируют за сообщения.
+  worker:
     build:
       context: ./worker
     environment:
-      - MANAGER_URL=http://manager:8082
-      - JAVA_TOOL_OPTIONS=-Xmx800m
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      RABBITMQ_PREFETCH: ${RABBITMQ_PREFETCH:-1}
+      JAVA_TOOL_OPTIONS: -Xmx384m
+    mem_limit: 512m
+    expose:
+      - "8081"
     deploy:
+      replicas: ${WORKER_REPLICAS:-3}
       resources:
         limits:
-          memory: 1G
+          memory: 512m
     networks:
       - crackhash-net
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
-  worker-2:
-    build:
-      context: ./worker
-    environment:
-      - MANAGER_URL=http://manager:8082
-      - JAVA_TOOL_OPTIONS=-Xmx800m
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-    networks:
-      - crackhash-net
-
-  worker-3:
-    build:
-      context: ./worker
-    environment:
-      - MANAGER_URL=http://manager:8082
-      - JAVA_TOOL_OPTIONS=-Xmx800m
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-    networks:
-      - crackhash-net
-
+  # React-клиент нужен для ручной отправки задач и проверки статусов.
   client:
     build:
       context: ./client
     ports:
       - "80:80"
+    environment:
+      VITE_MANAGER_API_BASE_URL: "http://localhost:${MANAGER_PORT:-8082}/api"
+      VITE_MONITORING_API_BASE_URL: "http://localhost:${MONITORING_API_PORT:-8083}/api"
     networks:
       - crackhash-net
     depends_on:
       - manager
+      - monitoring-api
+
+  # RabbitMQ хранит две durable-очереди: задачи manager->worker и результаты worker->manager.
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "15692:15692"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./infrastructure/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - crackhash-net
+
+  # Три MongoDB-ноды образуют replica set: одна primary и две secondary.
+  mongo1:
+    image: mongo:7
+    command: ["mongod", "--replSet", "${MONGO_REPLICA_SET:-rs0}", "--bind_ip_all", "--wiredTigerCacheSizeGB", "${MONGO_CACHE_SIZE_GB:-0.25}"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo1-data:/data/db
+    mem_limit: 512m
+    networks:
+      - crackhash-net
+
+  mongo2:
+    image: mongo:7
+    command: ["mongod", "--replSet", "${MONGO_REPLICA_SET:-rs0}", "--bind_ip_all", "--wiredTigerCacheSizeGB", "${MONGO_CACHE_SIZE_GB:-0.25}"]
+    volumes:
+      - mongo2-data:/data/db
+    mem_limit: 512m
+    networks:
+      - crackhash-net
+
+  mongo3:
+    image: mongo:7
+    command: ["mongod", "--replSet", "${MONGO_REPLICA_SET:-rs0}", "--bind_ip_all", "--wiredTigerCacheSizeGB", "${MONGO_CACHE_SIZE_GB:-0.25}"]
+    volumes:
+      - mongo3-data:/data/db
+    mem_limit: 512m
+    networks:
+      - crackhash-net
+
+  # Одноразовый контейнер инициализирует replica set и ждет выбора primary.
+  mongo-init:
+    image: mongo:7
+    restart: "no"
+    environment:
+      MONGO_REPLICA_SET: ${MONGO_REPLICA_SET:-rs0}
+    volumes:
+      - ./infrastructure/mongo/init-replica.js:/scripts/init-replica.js:ro
+    command: >
+      sh -c "
+        until mongosh --host mongo1:27017 --quiet --eval 'db.runCommand({ ping: 1 }).ok' >/dev/null 2>&1; do
+          echo 'Waiting for MongoDB replica set seed...';
+          sleep 2;
+        done;
+        mongosh --host mongo1:27017 --quiet /scripts/init-replica.js
+      "
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    mem_limit: 256m
+    networks:
+      - crackhash-net
+
+  # Prometheus собирает метрики actuator и RabbitMQ.
+  prometheus:
+    image: prom/prometheus:v2.53.4
+    profiles:
+      - monitoring
+    user: root
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
+      - "--storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-6h}"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    mem_limit: ${PROMETHEUS_MEM_LIMIT:-2g}
+    deploy:
+      resources:
+        limits:
+          memory: ${PROMETHEUS_MEM_LIMIT:-2g}
+    networks:
+      - crackhash-net
+    depends_on:
+      - manager
+      - monitoring-api
+      - rabbitmq
+
+  # Grafana автоматически подхватывает datasource, dashboard и заготовки alerting из monitoring/grafana.
+  grafana:
+    image: grafana/grafana:12.0.0
+    profiles:
+      - monitoring
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    mem_limit: 512m
+    networks:
+      - crackhash-net
+    depends_on:
+      - prometheus
+
+  # k6 запускает нагрузочный сценарий и отправляет метрики в Prometheus remote write.
+  k6:
+    image: grafana/k6:0.57.0
+    profiles:
+      - loadtest
+    environment:
+      TARGET_URL: http://manager:8082
+      K6_PROMETHEUS_RW_SERVER_URL: http://prometheus:9090/api/v1/write
+      K6_PROMETHEUS_RW_TREND_STATS: p(95),p(99),min,max,avg
+      K6_VUS: ${K6_VUS:-1000}
+      K6_DURATION: ${K6_DURATION:-30s}
+      K6_POLL_STATUS: ${K6_POLL_STATUS:-false}
+      K6_MAX_LENGTH: ${K6_MAX_LENGTH:-2}
+      K6_HASH: ${K6_HASH:-25ed1bcb423b0b7200f485fc5ff71c8e}
+      K6_SLEEP_SECONDS: ${K6_SLEEP_SECONDS:-1}
+    volumes:
+      - ./load_tests/k6:/scripts:ro
+    command: ["run", "-o", "experimental-prometheus-rw", "/scripts/crackhash.js"]
+    networks:
+      - crackhash-net
+    depends_on:
+      - manager
+      - prometheus
 
 networks:
   crackhash-net:
     driver: bridge
+
+volumes:
+  rabbitmq-data:
+  mongo1-data:
+  mongo2-data:
+  mongo3-data:
+  prometheus-data:
+  grafana-data:

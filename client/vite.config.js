@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// Vite слушает 80 порт внутри контейнера, чтобы compose мог открыть клиент на http://localhost.
 export default defineConfig({
     plugins: [react()],
     server: {
-        host: true, // Listen on all local IPs
+        host: true, // Слушаем все интерфейсы внутри контейнера.
         port: 80,
         strictPort: true,
     }

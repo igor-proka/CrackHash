@@ -2,6 +2,7 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Контейнер клиента запускает Vite dev server на 80 порту.
 COPY package.json package-lock.json ./
 RUN npm install
 

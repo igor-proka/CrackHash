@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  # Метрики REST/API и бизнес-счетчики manager.
+  - job_name: manager
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - manager:8082
+
+  - job_name: monitoring-api
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - monitoring-api:8083
+
+  # Реплики worker'ов обнаруживаются с помощью меток Docker, поэтому Grafana может отображать
+  # стабильные имена, такие как "worker 1 (172.18.0.7:8081)", вместо просто IP-адресов.
+  - job_name: workers
+    metrics_path: /actuator/prometheus
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values:
+              - com.docker.compose.project=crackhash
+          - name: label
+            values:
+              - com.docker.compose.service=worker
+    relabel_configs:
+      - source_labels: [__meta_docker_port_private]
+        regex: "8081"
+        action: keep
+      - source_labels: [__meta_docker_container_name, __address__]
+        separator: ";"
+        regex: "/.*[-_]worker[-_](\\d+);(.+)"
+        target_label: instance
+        replacement: "worker $1 ($2)"
+      - source_labels: [__meta_docker_container_name]
+        regex: "/.*[-_]worker[-_](\\d+)"
+        target_label: worker
+        replacement: "worker $1"
+      - source_labels: [__address__]
+        target_label: worker_url
+
+  # RabbitMQ exporter включается плагином rabbitmq_prometheus на порту 15692.
+  - job_name: rabbitmq
+    static_configs:
+      - targets:
+          - rabbitmq:15692
+
+  - job_name: rabbitmq-queues
+    metrics_path: /metrics/per-object
+    static_configs:
+      - targets:
+          - rabbitmq:15692

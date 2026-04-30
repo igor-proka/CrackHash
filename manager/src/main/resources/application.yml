@@ -1,9 +1,57 @@
 server:
   port: 8082
 
-worker:
-  urls: http://worker-1:8081,http://worker-2:8081,http://worker-3:8081
+spring:
+  data:
+    mongodb:
+      # Подключаемся ко всему replica set и требуем majority write/read, чтобы requestId отдавался только после репликации.
+      uri: mongodb://mongo1:27017,mongo2:27017,mongo3:27017/crackhash?replicaSet=rs0&w=majority&readConcernLevel=majority&retryWrites=true
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+    # Correlated confirms позволяют связывать broker ack/nack с конкретной частью задачи.
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        # Ручной ack нужен: manager подтверждает результат только после сохранения в MongoDB.
+        acknowledge-mode: manual
+        default-requeue-rejected: false
+        prefetch: 10
 
 task:
+  partition:
+    # На столько частей manager делит один запрос на перебор.
+    count: ${TASK_PARTITION_COUNT:3}
   timeout:
-    ms: 300000
+    # Совместимость с Task 1: в текущей отказоустойчивой схеме задачи не удаляются по таймауту ожидания.
+    ms: ${TASK_TIMEOUT_MS:300000}
+
+crackhash:
+  rabbitmq:
+    # Очередь задач: manager публикует части, воркеры читают.
+    tasks-exchange: crackhash.tasks.exchange
+    tasks-queue: crackhash.tasks.queue
+    tasks-routing-key: crackhash.task
+    # Очередь результатов: воркеры публикуют ответы, manager читает.
+    results-exchange: crackhash.results.exchange
+    results-queue: crackhash.results.queue
+    results-routing-key: crackhash.result
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # /actuator/prometheus используется Prometheus для сбора метрик manager.
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        # Нужны http_server_requests_seconds_bucket, чтобы Grafana считала p95/p99 через histogram_quantile.
+        http.server.requests: true

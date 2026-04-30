@@ -1,0 +1,7 @@
+apiVersion: 1
+# Заготовка provisioning для alerting: правила можно добавить позже без ручной настройки Grafana UI.
+groups: []
+contactPoints: []
+policies: []
+muteTimes: []
+templates: []

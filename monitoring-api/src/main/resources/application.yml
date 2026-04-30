@@ -1,0 +1,17 @@
+server:
+  port: 8083
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://mongo1:27017,mongo2:27017,mongo3:27017/crackhash?replicaSet=rs0&readConcernLevel=majority&readPreference=secondaryPreferred&retryWrites=true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
