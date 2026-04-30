@@ -304,33 +304,3 @@ GET /api/monitoring/requests/{requestId}
 ```text
 QUEUED -> IN_PROGRESS -> READY
 ```
-
-## Быстрый сценарий проверки
-
-1. Запусти систему:
-
-```powershell
-.\scripts\start.ps1
-```
-
-2. Отправь задачу через UI или API.
-
-3. Открой MongoDB:
-
-```powershell
-docker compose exec mongo1 mongosh crackhash
-```
-
-4. Найди последний запрос:
-
-```javascript
-db.crack_requests.find().sort({ createdAt: -1 }).limit(1).pretty()
-```
-
-5. Скопируй `requestId` и посмотри его части:
-
-```javascript
-db.crack_task_parts.find({ requestId: "ВСТАВЬ_REQUEST_ID" }).sort({ partNumber: 1 }).pretty()
-```
-
-Так видно, как manager сохраняет запрос, публикует части в RabbitMQ и затем отмечает ответы воркеров.
