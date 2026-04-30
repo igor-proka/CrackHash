@@ -5,8 +5,8 @@
 ## Быстрый запуск
 
 ```bash
-docker compose up -d --build
-docker compose --profile loadtest up k6
+docker compose --profile monitoring up --build -d
+docker compose --profile monitoring --profile loadtest up k6
 ```
 
 По умолчанию k6 использует профиль из `.env`:

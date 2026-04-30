@@ -126,17 +126,6 @@ Grafana автоматически получает:
 - dashboard `CrackHash Overview`;
 - provisioning-заготовки для dashboards, plugins и alerting.
 
-## Что смотреть в Grafana
-
-Для защиты Task 2 полезнее всего показывать:
-
-- глубину `crackhash.tasks.queue` и `crackhash.results.queue`;
-- количество `ready` и `unacked` сообщений RabbitMQ;
-- latency и error rate HTTP API manager;
-- JVM heap manager/worker;
-- бизнес-счетчики `crackhash.requests.accepted`, `crackhash.requests.completed`, `crackhash.tasks.publish.failures`;
-- k6 latency `p95/p99`, если включен нагрузочный профиль.
-
 ## Соответствие требованиям Task 2
 
 | Требование | Где реализовано |
