@@ -7,7 +7,7 @@ COPY build.gradle .
 COPY settings.gradle .
 
 # Даем wrapper права на запуск внутри Linux-контейнера.
-RUN chmod +x ./gradlew
+RUN sed -i 's/\r$//' ./gradlew && chmod +x ./gradlew
 # Заранее скачиваем зависимости, чтобы Docker лучше кешировал сборку.
 RUN ./gradlew dependencies --no-daemon
 

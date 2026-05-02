@@ -62,14 +62,16 @@ desktop.ini
 **/mongodb/
 **/rabbitmq/
 
-# Keep RabbitMQ config used by docker-compose; only runtime data should be ignored.
+# Keep RabbitMQ config used by docker-compose
 !infrastructure/rabbitmq/
 infrastructure/rabbitmq/*
 !infrastructure/rabbitmq/enabled_plugins
 
 ### Application ###
-# Отслеживается намеренно: в этом проекте файл .env используется в качестве исполняемого примера конфигурации.
-!.env
+.env
+.env.local
+.env.*.local
+!.env.example
 application-local.yml
 application-local.properties
 **/application-*.yml

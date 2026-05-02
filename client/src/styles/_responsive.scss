@@ -1,0 +1,115 @@
+@media (max-width: 980px) {
+  .app {
+    width: min(100% - 24px, 880px);
+  }
+
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .app-tabs {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .app-tabs button {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .panels,
+  .monitoring-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .panels .panel:first-child {
+    grid-row: auto;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .app {
+    width: min(100% - 20px, 640px);
+    padding-top: 16px;
+  }
+
+  .brand-mark {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+  }
+
+  .brand-mark img {
+    width: 46px;
+    height: 46px;
+  }
+
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .panel,
+  .tasks-section {
+    padding: 14px;
+  }
+
+  .monitoring-header,
+  .detail-title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .live-indicator,
+  .detail-actions {
+    width: fit-content;
+  }
+
+  .task-card {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .task-id {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-wide {
+    grid-column: auto;
+  }
+
+  .parts-head {
+    display: none;
+  }
+
+  .parts-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .parts-row > span {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .parts-row > span::before {
+    content: attr(data-label);
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+}

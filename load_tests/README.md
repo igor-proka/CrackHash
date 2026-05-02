@@ -14,13 +14,17 @@ docker compose --profile monitoring --profile loadtest up k6
 ```text
 K6_VUS=1000
 K6_DURATION=30s
-K6_POLL_STATUS=false
+K6_POLL_STATUS=true
 K6_MAX_LENGTH=2
 K6_HASH=25ed1bcb423b0b7200f485fc5ff71c8e
 K6_SLEEP_SECONDS=1
 ```
 
 `K6_HASH` выше это MD5 от `zz`, поэтому задача реально решаемая при `maxLength=2`, но достаточно лёгкая: нагрузка в основном идёт на manager, MongoDB outbox и RabbitMQ.
+
+Скриншот итогового запуска с этими параметрами лежит в [`../screenshots/k6-test-results.png`](../screenshots/k6-test-results.png):
+
+![Результаты нагрузочного теста k6](../screenshots/k6-test-results.png)
 
 ## Что именно нагружается
 
